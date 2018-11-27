@@ -1,5 +1,5 @@
+%% Clear everything
 fclose all;clear;close all;clc;
-% Clear everything
 
 %% prepare audio
 % https://www.mathworks.com/help/matlab/import_export/
@@ -13,10 +13,28 @@ y  = getaudiodata(recObj); % signal
 fs = recObj.SampleRate;    % samplerate
 
 %% prepare spectrogram
-[mag, pha] = get_Spectrogram(y, 512, 256);
-% get magnitude and phase spectorgrams
+FrameSize = 256;
+FrameRate = 512;
 % set frame size as 512 points
-% set frame rate as 256 points(Overlap 50%)
+% set frame rate as 160 points(10 ms)
+
+[mag, ~] = get_Spectrogram(y, FrameRate, FrameSize);
+% get magnitude and phase spectorgrams
+
+%% plot
+plot_data_mode = 'spectrogram';
+plot_angle_setup = 0;
+sig_length = length(y);
+subplot(231)
+Plot_Spec_or_MSpec(plot_data_mode, plot_angle_setup, ...
+                   fs, FrameRate, sig_length, mag, ...
+                   'spectrogram')
+subplot(234)
+plot_data_mode = 'modulation';
+[mod_mag, ~] = mod_fft(mag);
+Plot_Spec_or_MSpec(plot_data_mode, plot_angle_setup, ...
+                   fs, FrameRate, sig_length, mod_mag, ...
+                   'moddulation spectrum of spectrogram')
 
 %% dwt and idwt
 wname = 'bior3.7'; % wavelet name
@@ -43,14 +61,21 @@ for i = 1:size(mag,1)
 end
 
 %% plot
-subplot(131)
-plot_spectrogram(fs, length(y), 'Log Spectrogram', mag)
-% plot spectorgram in log scale
-
-subplot(132)
-plot_spectrogram(fs, length(y), 'reconstruction from ca', mag_ca_only)
-% reconstruction of approximation coefficients
-
-subplot(133)
-plot_spectrogram(fs, length(y), 'reconstruction from cd', mag_cd_only)
-% reconstruction of detail coefficients
+plot_data_mode = 'spectrogram';
+subplot(232)
+Plot_Spec_or_MSpec(plot_data_mode, plot_angle_setup, ...
+                   fs, FrameRate, sig_length, ca, ...
+                   'approximation coefficients')
+subplot(235)
+Plot_Spec_or_MSpec(plot_data_mode, plot_angle_setup, ...
+                   fs, FrameRate, sig_length, cd, ...
+                   'detail coefficients')
+ 
+subplot(233)
+Plot_Spec_or_MSpec(plot_data_mode, plot_angle_setup, ...
+                   fs, FrameRate, sig_length, mag_ca_only, ...
+                   'reconstruct with approximation coefficients only')
+subplot(236)
+Plot_Spec_or_MSpec(plot_data_mode, plot_angle_setup, ...
+                   fs, FrameRate, sig_length, mag_cd_only, ...
+                   'reconstruct with detail coefficients only')
